@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forever Gold Corporation</title>
+<style>
+:root{--bg:#04070c;--hull:#0a1220;--panel:#0d1828;--panel2:#111f33;--line:#1e3550;--txt:#d6ebff;--dim:#7d97b0;--cyan:#4fd6ff;--gold:#f0c24b;--red:#ff5f5f;--green:#6dff9a;--amber:#ffb347;--violet:#9b7bff}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;cursor:pointer}a{color:var(--cyan)}
+.mono{font-family:ui-monospace,Menlo,monospace}
+header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0b1626,#060b14)}
+.brand{display:flex;flex-direction:column;margin-right:auto}.brand b{letter-spacing:3px;color:var(--gold);font-size:15px}.brand small{color:var(--dim);letter-spacing:1px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:110px}
+.chip small{display:block;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:1px}.chip span{font-weight:700}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:8px;padding:8px 12px;min-height:40px}
+.btn:hover{border-color:var(--cyan)}.btn.stop{border-color:#7a2a2a;background:#2a0f12;color:#ffd5d5}.btn.go{border-color:#2a6a3a;background:#0f2a17;color:#d5ffe0}
+.btn.small{min-height:34px;padding:5px 10px;font-size:13px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;padding:14px 16px}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px;min-width:0}
+.panel h2{margin:0 0 10px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.panel h2 small{color:var(--dim);letter-spacing:0;text-transform:none;font-weight:400}
+#mapWrap{position:relative}canvas{width:100%;display:block;border-radius:8px;background:#02050a;image-rendering:pixelated}
+#tip{position:absolute;pointer-events:none;background:#000c;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;display:none;white-space:nowrap}
+.cmd{display:flex;gap:8px;margin-top:10px}.cmd input{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:10px;font:inherit;min-height:42px}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--dim);font-weight:500;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 6px;border-bottom:1px solid #12233a;vertical-align:middle}
+tr.row{cursor:pointer}tr.row:hover td{background:#0f1f34}
+.rank{font-size:10px;padding:1px 6px;border-radius:10px;border:1px solid var(--line);color:var(--dim);margin-left:6px;text-transform:uppercase}
+.rank.ai{color:var(--cyan);border-color:#1f5f7a}.rank.chief{color:var(--gold);border-color:#6a5420}.rank.elite{color:var(--violet);border-color:#3e2f7a}.rank.grunt{color:#ffd76a;border-color:#6a5a20}
+.bar{height:6px;background:#132639;border-radius:4px;overflow:hidden;min-width:60px}.bar i{display:block;height:100%;background:var(--cyan)}
+.vit{display:flex;gap:3px;align-items:flex-end;height:22px}.vit i{display:block;width:7px;border-radius:2px 2px 0 0;background:var(--cyan)}
+.bizgrp{margin:4px 0 12px}.bizgrp h3{margin:0 0 6px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+.bizgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.biz{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}.biz b{display:block}
+.biz .st{font-size:11px;text-transform:uppercase;letter-spacing:1px}.biz .na{font-size:12px;color:var(--dim);margin-top:4px;overflow-wrap:anywhere}
+.biz .pg{font-size:12px;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.st-active{color:var(--green)}.st-early{color:var(--cyan)}.st-paused,.st-stalled{color:var(--amber)}.st-done{color:var(--dim)}
+.public #runBtn,.public #stopBtn,.public #cmdForm,.public .priv{display:none !important}
+.lbl{font-size:12px;font-weight:600}.Thriving{color:var(--green)}.Steady{color:var(--cyan)}.Struggling{color:var(--amber)}.Burnout{color:var(--red)}
+.st{font-size:11px;padding:1px 7px;border-radius:10px;border:1px solid var(--line);white-space:nowrap}
+.st.done{color:var(--green)}.st.blocked{color:var(--amber)}.st.failed{color:var(--red)}.st.awaiting_approval{color:var(--gold)}.st.queued{color:var(--dim)}
+.card{border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--panel2)}
+.card b{display:block;margin-bottom:4px}.card pre{white-space:pre-wrap;margin:6px 0;font:12px/1.5 ui-monospace,Menlo,monospace;color:#bcd3ea}
+.card .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.card input{flex:1;min-width:120px;background:#0a1626;border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:7px}
+.muted{color:var(--dim)}.small{font-size:12px}
+.bubble{border-radius:10px;padding:7px 10px;margin:5px 0;max-width:92%}.bubble.Rico{background:#2a1f05;border:1px solid #6a5420}.bubble.Dee{background:#06202b;border:1px solid #1f5f7a;margin-left:auto}.bubble.Orrin{background:#1a1433;border:1px solid #3e2f7a}
+.lane{font-size:10px;padding:1px 6px;border-radius:8px;background:#132639;color:var(--dim);text-transform:uppercase;white-space:nowrap}.lane.faith-mindset{color:#ffd76a}
+.log div{border-bottom:1px solid #12233a;padding:4px 0;font-size:12px;color:var(--dim)}.log b{color:var(--txt);font-weight:600}
+#drawer{position:fixed;top:0;right:0;width:min(460px,100%);height:100%;background:#08111e;border-left:1px solid var(--line);overflow-y:auto;padding:16px;z-index:10;box-shadow:-20px 0 40px #000a}
+#drawer[hidden]{display:none !important}
+#drawer h3{margin:0;font-size:20px}.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:13px;margin:10px 0}.kv span:nth-child(odd){color:var(--dim)}
+.vrow{display:grid;grid-template-columns:70px 1fr 34px;gap:8px;align-items:center;margin:6px 0}.vrow small{grid-column:2/4;color:var(--dim);margin-top:-4px}
+.acc{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px solid #12233a}
+.k-allowed{color:var(--green)}.k-approval{color:var(--gold)}.k-blocked{color:var(--amber)}.k-denied{color:var(--red)}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0d1828;border:1px solid var(--cyan);border-radius:8px;padding:10px 14px;display:none;z-index:20;max-width:92vw}
+.stopbar{background:#3a0d10;color:#ffd5d5;text-align:center;padding:8px;font-weight:700;letter-spacing:1px}
+details summary{cursor:pointer;color:var(--dim)}
+</style>
+</head>
+<body>
+<div id="stopbar" class="stopbar" hidden>ALL CREW STOPPED. Nobody works until you press Resume.</div>
+<header>
+  <div class="brand"><b id="corpName">FOREVER GOLD CORPORATION</b><small>Halo Command · Cortana › Master Chief › Elites › Grunts · Automated ventures</small></div>
+  <div class="chip"><small>Earned this month</small><span id="earned">-</span> <span class="muted small" id="goal"></span></div>
+  <div class="chip"><small>Spent / cap</small><span id="spent">-</span></div>
+  <div class="chip"><small>Posts today</small><span id="posts" class="small">-</span></div>
+  <div class="chip"><small>Cycle</small><span id="tick">-</span> <span class="muted small" id="ago"></span></div>
+  <button class="btn" id="runBtn" title="Run one cycle now">Run cycle</button>
+  <button class="btn stop" id="stopBtn">STOP ALL</button>
+</header>
+<main>
+  <div>
+    <section class="panel">
+      <h2>Station <small id="mapNote">Click anyone to see their file</small></h2>
+      <div id="mapWrap"><canvas id="map" width="960" height="560" aria-label="Station map: crew moving between rooms"></canvas><div id="tip"></div></div>
+      <form class="cmd" id="cmdForm"><input id="cmd" maxlength="500" placeholder="Tell Cortana what you need (e.g. research what's winning, rerun the debate topics)" aria-label="Command"><button class="btn" type="submit">Send</button></form>
+    </section>
+    <section class="panel">
+      <h2>Crew <small id="rosterNote"></small></h2>
+      <div class="tablewrap"><table><thead><tr><th>Crew</th><th>Room</th><th>On it</th><th>Outcome</th><th>Wellbeing</th><th title="Mind, Body, Food, Sleep, Bonds, Morale, Purpose">Vitals</th></tr></thead><tbody id="roster"></tbody></table></div>
+    </section>
+    <section class="panel"><h2>Automated ventures <small id="bizNote"></small></h2><div id="biz" class="muted">No ventures yet.</div></section>
+    <section class="priv panel"><h2>Debate Studio <small id="debateNote"></small></h2><div id="debate" class="muted">No tournament yet.</div></section>
+    <section class="priv panel"><h2>Research Bay <small id="researchNote"></small></h2><div id="research" class="muted">No research yet.</div></section>
+  </div>
+  <div>
+    <section class="panel"><h2>Needs you <small id="apCount"></small></h2><div id="approvals"></div></section>
+    <section class="priv panel"><h2>What's starving the crew</h2><div id="blockers"></div></section>
+    <section class="panel"><h2>Analytics Lab <small>real views only</small></h2><div id="analytics" class="muted">No reads yet.</div></section>
+    <section class="priv panel"><h2>Latest briefing</h2><div id="briefing" class="muted">None yet.</div></section>
+    <section class="panel"><h2>Connections</h2><div id="connectors"></div></section>
+    <section class="priv panel log"><h2>Station log</h2><div id="log"></div></section>
+  </div>
+</main>
+<aside id="drawer" hidden aria-label="Crew file"></aside>
+<div id="toast" role="status"></div>
+<script>window.__HALO_STATE__ = {"public":true,"generated_at":"2026-11-17T17:42:52.984Z","tick":53,"stopped":false,"station":"Forever Gold Corporation","rooms":[{"id":"command","name":"Command Deck"},{"id":"research","name":"Research Bay"},{"id":"forge","name":"Clipping Forge","revenue":true},{"id":"publish","name":"Publishing Bay","revenue":true},{"id":"debate","name":"Debate Studio","revenue":true},{"id":"comms","name":"Comms Deck"},{"id":"treasury","name":"Treasury Vault"},{"id":"analytics","name":"Analytics Lab"},{"id":"compliance","name":"Compliance Gate"},{"id":"medbay","name":"Med Bay"},{"id":"mess","name":"Mess Hall"},{"id":"barracks","name":"Barracks"}],"agents":[{"id":"cortana","name":"Cortana","rank":"ai","room":"command","reports_to":"thomas","job":"Holds Thomas's goals and rules, reviews every room, writes the morning briefing, nightly debrief and Sunday town hall, and sends Thomas only what needs him.","personality":"Calm, sharp, protective of Thomas's time.","partners":["chief"],"runtime":"Engine rules; writing through the Hermes brain when it is turned on","location":"command","crew":["chief","brax","tamsin","imani"],"outcome":{"label":"Net profit this month (goal $2,000)","target":2000},"stats":{"label":"Thriving","overall":91,"outcome":{"pct":0,"text":"$0.00 of $2000"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":100,"why":"3 of 2 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with chief"},"morale":{"score":65,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"3 of 3 finished jobs were used"}}},"task":{"status":"done","title":"Write the morning briefing","type":"briefing.morning","room":"command"},"access":[]},{"id":"chief","name":"Master Chief","rank":"chief","room":"command","reports_to":"cortana","job":"Runs every cycle: walks the station, hands each crew member their job, chases anything stalled, and reports up to Cortana.","personality":"Few words. Gets it done. Never leaves anyone behind.","partners":["cortana"],"runtime":"Hermes Agent (Nous Research) on Telegram, Claude Sonnet 4 via API (metered)","location":"command","crew":["kael","varo","senna","orrin","lyra","juno"],"outcome":{"label":"Nothing stalls longer than 24 hours","target":1},"stats":{"label":"Thriving","overall":83,"outcome":{"pct":100,"text":"0 stalled of 2 open"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on call, no jobs yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with cortana"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":60,"why":"support role"}}},"task":null,"access":[]},{"id":"kael","name":"Kael","rank":"elite","room":"research","reports_to":"chief","job":"Finds the best source videos to clip (campaign footage only), the moments worth cutting, and the hooks winning right now.","personality":"Curious, fast, always has three tabs open.","partners":["varo","orrin"],"runtime":"yt-dlp (free) + engine scoring","location":"research","crew":["pip","nib"],"outcome":{"label":"Research scans done this week","target":9},"stats":{"label":"Thriving","overall":91,"outcome":{"pct":33,"text":"3 of 9 this week"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":100,"why":"3 of 1 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":88,"why":"75% of handoffs landed"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":77,"why":"2 of 3 finished jobs were used"}}},"task":{"status":"done","title":"research what's winning","type":"research.signals","room":"research"},"access":[]},{"id":"pip","name":"Pip","rank":"grunt","room":"research","reports_to":"kael","job":"Pulls video lists and captions.","personality":"Eager.","partners":["nib"],"location":"research","crew":[],"stats":{"label":"Thriving","overall":92,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"1 jobs done this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":100,"why":"100% of handoffs landed"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"1 of 1 finished jobs were used"}}},"task":{"status":"done","title":"Pull what Shorts are winning for our topics","type":"research.signals","room":"research"},"access":[]},{"id":"nib","name":"Nib","rank":"grunt","room":"research","reports_to":"kael","job":"Scores moments and hooks.","personality":"Picky.","partners":["pip"],"location":"research","crew":[],"stats":{"label":"Thriving","overall":85,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":80,"why":"2 jobs done this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"50% of handoffs landed"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"1 of 2 finished jobs were used"}}},"task":{"status":"done","title":"research what's winning","type":"research.signals","room":"research"},"access":[]},{"id":"varo","name":"Varo","rank":"elite","room":"forge","reports_to":"chief","job":"Cuts 30 to 60 second vertical clips from campaign footage: hook, story, payoff, a title hook and captions.","personality":"Craftsman. Hates a weak first two seconds.","partners":["kael","tamsin","senna"],"runtime":"ffmpeg (free) + clip tool when approved","location":"forge","crew":["bolt","mox","fizz"],"outcome":{"label":"Clips cut this week (6 a day once the ramp allows)","target":7},"stats":{"label":"Thriving","overall":86,"outcome":{"pct":43,"text":"3 of 7 this week"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":100,"why":"3 of 2 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":63,"why":"25% of handoffs landed"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":63,"why":"1 of 3 finished jobs were used"}}},"task":{"status":"done","title":"Cut today's clips","type":"forge.cut","room":"forge"},"access":[]},{"id":"bolt","name":"Bolt","rank":"grunt","room":"forge","reports_to":"varo","job":"Trims and reframes to 9:16.","personality":"Quick hands.","partners":["mox"],"location":"forge","crew":[],"stats":{"label":"Thriving","overall":85,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":90,"why":"3 jobs done this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":67,"why":"33% of handoffs landed"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":63,"why":"1 of 3 finished jobs were used"}}},"task":{"status":"done","title":"Cut today's clips","type":"forge.cut","room":"forge"},"access":[]},{"id":"mox","name":"Mox","rank":"grunt","room":"forge","reports_to":"varo","job":"Captions and title hooks.","personality":"Wordy.","partners":["bolt"],"location":"forge","crew":[],"stats":{"label":"Thriving","overall":84,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on call, no jobs yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with bolt"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":null,"access":[]},{"id":"fizz","name":"Fizz","rank":"grunt","room":"forge","reports_to":"varo","job":"Exports and files every clip.","personality":"Tidy.","partners":["mox"],"location":"forge","crew":[],"stats":{"label":"Thriving","overall":84,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on call, no jobs yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with mox"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":null,"access":[]},{"id":"senna","name":"Senna","rank":"elite","room":"publish","reports_to":"chief","job":"Posts approved clips on the warm-up schedule to TikTok, Instagram, Facebook and YouTube, and submits each link to Whop within 30 minutes.","personality":"Punctual to the minute.","partners":["varo","juno"],"runtime":"Platform schedulers once Thomas connects them","location":"publish","crew":["zip","tock"],"outcome":{"label":"Allowed post slots used today","target":1},"stats":{"label":"Thriving","overall":82,"outcome":{"pct":0,"text":"0 of 4 slots today"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on standby: checked in, nothing to work on yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"50% of handoffs landed"},"morale":{"score":65,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":{"status":"done","title":"Use open post slots","type":"publish.slot","room":"publish"},"access":[]},{"id":"zip","name":"Zip","rank":"grunt","room":"publish","reports_to":"senna","job":"Queues posts.","personality":"Zippy.","partners":["tock"],"location":"publish","crew":[],"stats":{"label":"Thriving","overall":84,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on call, no jobs yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with tock"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":null,"access":[]},{"id":"tock","name":"Tock","rank":"grunt","room":"publish","reports_to":"senna","job":"Watches the 30-minute Whop clock.","personality":"Always checking the time.","partners":["zip"],"location":"publish","crew":[],"stats":{"label":"Thriving","overall":84,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on standby: checked in, nothing to work on yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with zip"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":{"status":"done","title":"Use open post slots","type":"publish.slot","room":"publish"},"access":[]},{"id":"orrin","name":"Orrin","rank":"elite","room":"debate","reports_to":"chief","job":"Showrunner. Runs the weekly topic tournament between Rico and Dee, hands Thomas the top 3, then gets the 7 scripts written.","personality":"Knows what makes people stop scrolling.","partners":["rico","dee","kael"],"runtime":"Engine topic bank + Hermes brain when on","location":"debate","crew":["rico","dee"],"outcome":{"label":"Topic shortlist ready every week","target":1},"stats":{"label":"Thriving","overall":90,"outcome":{"pct":0,"text":"0 of 1 this week"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":100,"why":"1 of 0 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":100,"why":"100% of handoffs landed"},"morale":{"score":65,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":{"status":"awaiting_approval","title":"Run the topic tournament","type":"debate.tournament","room":"debate"},"access":[]},{"id":"rico","name":"Rico","rank":"grunt","room":"debate","reports_to":"orrin","job":"Pitches the topic he thinks will blow up and argues the hype side.","personality":"Loud risk-taker. Jumps first.","partners":["dee"],"location":"debate","crew":[],"stats":{"label":"Thriving","overall":84,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on call, no jobs yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with dee"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":null,"access":[]},{"id":"dee","name":"Dee","rank":"grunt","room":"debate","reports_to":"orrin","job":"Pokes holes, argues the skeptic side, keeps it honest.","personality":"Calm skeptic. One raised eyebrow.","partners":["rico"],"location":"debate","crew":[],"stats":{"label":"Thriving","overall":84,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"on call, no jobs yet"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with rico"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":65,"why":"works on a money line"}}},"task":{"status":"awaiting_approval","title":"Run the topic tournament","type":"debate.tournament","room":"debate"},"access":[]},{"id":"lyra","name":"Lyra","rank":"elite","room":"comms","reports_to":"chief","job":"Drafts replies to comments and DMs on every account. Drafts only; nothing sends without Thomas.","personality":"Warm, quick, never argues with a commenter.","partners":["juno"],"runtime":"Drafts file; Hermes brain when on","location":"mess","crew":["dot"],"outcome":{"label":"Inbox sweeps this week","target":14},"stats":{"label":"Struggling","overall":69,"outcome":{"pct":0,"text":"0 of 14 this week"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"can't work until fed (see Food)"},"food":{"score":20,"why":"starving: needs inbox"},"sleep":{"score":94,"why":"rested"},"bonds":{"score":75,"why":"partnered with juno"},"morale":{"score":65,"why":"no verdicts from Thomas yet"},"purpose":{"score":60,"why":"support role"}}},"task":{"status":"blocked","title":"Draft replies to comments and DMs","type":"comms.drafts","room":"comms"},"access":[]},{"id":"dot","name":"Dot","rank":"grunt","room":"comms","reports_to":"lyra","job":"Sorts comments: question, praise, troll.","personality":"Polite.","partners":["lyra"],"location":"mess","crew":[],"stats":{"label":"Struggling","overall":71,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"can't work until fed (see Food)"},"food":{"score":20,"why":"starving: needs inbox"},"sleep":{"score":94,"why":"rested"},"bonds":{"score":75,"why":"partnered with lyra"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":60,"why":"support role"}}},"task":{"status":"blocked","title":"Draft replies to comments and DMs","type":"comms.drafts","room":"comms"},"access":[]},{"id":"brax","name":"Brax","rank":"elite","room":"treasury","reports_to":"cortana","job":"Logs every cost and every payout with proof. Blocks anything that would push the month over $50.","personality":"Counts twice. Trusts receipts, not screenshots of dashboards.","partners":["cortana"],"runtime":"Engine","location":"treasury","crew":["penny"],"outcome":{"label":"Spend stays under the $50 cap","target":1},"stats":{"label":"Thriving","overall":93,"outcome":{"pct":100,"text":"$0.00 of $50"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":100,"why":"1 of 1 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with cortana"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"1 of 1 finished jobs were used"}}},"task":{"status":"done","title":"Reconcile the books","type":"treasury.reconcile","room":"treasury"},"access":[]},{"id":"penny","name":"Penny","rank":"grunt","room":"treasury","reports_to":"brax","job":"Matches payouts to proof.","personality":"Exact.","partners":["brax"],"location":"treasury","crew":[],"stats":{"label":"Thriving","overall":89,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"1 jobs done this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with brax"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"1 of 1 finished jobs were used"}}},"task":{"status":"done","title":"Reconcile the books","type":"treasury.reconcile","room":"treasury"},"access":[]},{"id":"juno","name":"Juno","rank":"elite","room":"analytics","reports_to":"chief","job":"Reads real views at 48 hours and 7 days for every post and calls winners and losers each week. Never estimates.","personality":"Data only, no judgment.","partners":["senna","orrin"],"runtime":"yt-dlp public view counts (free)","location":"analytics","crew":["gus"],"outcome":{"label":"View reads this week","target":14},"stats":{"label":"Thriving","overall":90,"outcome":{"pct":7,"text":"1 of 14 this week"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":63,"why":"1 of 2 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":100,"why":"100% of handoffs landed"},"morale":{"score":65,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"1 of 1 finished jobs were used"}}},"task":{"status":"done","title":"Read real views on every post","type":"analytics.read","room":"analytics"},"access":[]},{"id":"gus","name":"Gus","rank":"grunt","room":"analytics","reports_to":"juno","job":"Fetches view counts.","personality":"Steady.","partners":["juno"],"location":"analytics","crew":[],"stats":{"label":"Thriving","overall":92,"outcome":null,"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":70,"why":"1 jobs done this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":100,"why":"100% of handoffs landed"},"morale":{"score":75,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"1 of 1 finished jobs were used"}}},"task":{"status":"done","title":"Read real views on every post","type":"analytics.read","room":"analytics"},"access":[]},{"id":"tamsin","name":"Tamsin","rank":"elite","room":"compliance","reports_to":"cortana","job":"Checks every clip against its campaign's rules and every topic against the safety rules before anything reaches Thomas.","personality":"Reads the fine print so nobody else has to.","partners":["varo","orrin"],"runtime":"Engine rules","location":"compliance","crew":[],"outcome":{"label":"Compliance reviews this week","target":7},"stats":{"label":"Thriving","overall":91,"outcome":{"pct":14,"text":"1 of 7 this week"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":100,"why":"1 of 1 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with varo, orrin"},"morale":{"score":65,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"1 of 1 finished jobs were used"}}},"task":{"status":"done","title":"Check clips and topics against the rules","type":"compliance.review","room":"compliance"},"access":[]},{"id":"imani","name":"Doc Imani","rank":"elite","room":"medbay","reports_to":"cortana","job":"Runs the crew checkup every cycle: mind, body, food, sleep, bonds, morale and purpose. Benches burned-out crew and flags what is starving them.","personality":"Gentle, but she will bench you.","partners":["chief"],"runtime":"Engine","location":"medbay","crew":[],"outcome":{"label":"Daily crew reports this week","target":7},"stats":{"label":"Thriving","overall":91,"outcome":{"pct":14,"text":"1 of 7 this week"},"vitals":{"mind":{"score":100,"why":"clear head"},"body":{"score":100,"why":"1 of 1 expected jobs this week"},"food":{"score":100,"why":"fed: has what it needs"},"sleep":{"score":100,"why":"rested"},"bonds":{"score":75,"why":"partnered with chief"},"morale":{"score":65,"why":"no verdicts from Thomas yet"},"purpose":{"score":100,"why":"1 of 1 finished jobs were used"}}},"task":{"status":"done","title":"Daily crew checkup","type":"medbay.checkup","room":"medbay"},"access":[]}],"treasury":{"cap":50,"spent":0,"earned":0,"goal":2000,"goal_note":"The $2,000/month goal comes from Cole Corcoran's video and is his claim, not a result. Cursor's 2026-11-14 brief found real tests at $27.49 in 72 hours and $0 in 24 hours."},"cadence":{"tiktok":{"allowed_today":1,"posted_today":0},"instagram":{"allowed_today":1,"posted_today":0},"facebook":{"allowed_today":1,"posted_today":0},"youtube":{"allowed_today":1,"posted_today":0}},"pending_count":1,"approvals":[],"decided":[],"blockers":[],"tasks":[],"research":null,"debate":null,"analytics":{"posts":[{"title":"Quit your job to start a business? Rico vs Dee #shorts","url":"https://youtube.com/shorts/DoAnau0wKFI","platform":"youtube","views":342,"read_at":"2026-11-17T06:45:54.131Z"}]},"briefings":[],"log":[],"briefing_text":"","connectors":{"youtube_public":{"status":"connected"},"whop":{"status":"not_connected"},"campaign_footage":{"status":"connected"},"tiktok_post":{"status":"not_connected"},"meta_post":{"status":"not_connected"},"youtube_upload":{"status":"not_connected"},"inbox":{"status":"not_connected"},"platform_insights":{"status":"not_connected"},"hermes_brain":{"status":"waiting"},"clips_youtube":{"status":"not_connected"},"clips_instagram":{"status":"not_connected"},"clips_tiktok":{"status":"not_connected"}},"ventures":[{"id":"forever-gold-clipper","name":"Forever Gold Clipper","type":"Paid clipping","status":"live","about":"Cuts campaign footage into short clips and earns per 1,000 views. Joined: SypherPK $7,500 Clipping Campaign (Content Rewards).","next_action":"Connect YouTube posting; set Whop/Content Rewards payout method.","rooms":["research","forge","publish","analytics"],"links":[{"label":"TikTok","url":"https://www.tiktok.com/@forevergoldclips"},{"label":"YouTube","url":"https://www.youtube.com/@forevergoldclips"},{"label":"Instagram","url":"https://www.instagram.com/forevergoldclips/"}]},{"id":"rico-vs-dee","name":"Rico vs Dee","type":"Faceless debate channel","status":"building","about":"Cartoon duo debate Shorts over gameplay, written and cut by the Debate Studio.","next_action":"Approve the W48 topic slate (ap-13).","rooms":["debate","publish"],"links":[{"label":"YouTube","url":"https://www.youtube.com/@ricovsdee"},{"label":"TikTok","url":"https://www.tiktok.com/@ricovsdee"},{"label":"Instagram","url":"https://www.instagram.com/ricovsdee/"}]},{"id":"cosmic-gold","name":"Cosmic Gold","type":"E-commerce","status":"paused","about":"Lumina Mask storefront (Shopify). Not run by the station crew yet.","next_action":"Not started here. Product, supplier and ad gates still open.","rooms":[],"links":[]},{"id":"next-venture","name":"Next automated venture","type":"Etsy / e-commerce / other","status":"idea","about":"Open slot. Not picked yet.","next_action":"Thomas picks the next niche.","rooms":[],"links":[]}],"brain":{"enabled":true,"cap":20,"seen_at":null}}; window.__HALO_PUBLIC__ = true;</script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https:\/\//.test(String(u || '')) ? esc(u) : '#';
+const fmt = n => n == null ? '-' : n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(1) + 'K' : String(n);
+const money = n => '$' + Number(n || 0).toFixed(2);
+const localTime = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); };
+const VKEYS = [['mind','Mind'],['body','Body'],['food','Food'],['sleep','Sleep'],['bonds','Bonds'],['morale','Morale'],['purpose','Purpose']];
+const vColor = s => s >= 80 ? '#6dff9a' : s >= 60 ? '#4fd6ff' : s >= 40 ? '#ffb347' : '#ff5f5f';
+let S = null, roomFilter = null, openId = null, serverOk = location.protocol.startsWith('http');
+
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 4500); }
+async function api(path, body) {
+  if (window.__HALO_PUBLIC__) return false;   // watch-only copy: no controls
+  try {
+    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Halo': '1' }, body: JSON.stringify(body || {}) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status);
+    toast(j.cycle ? 'Sent. The crew is on it; this page refreshes by itself.' : 'Saved. It runs on the next cycle.'); setTimeout(load, 1500); return true;
+  } catch (e) { toast('The command server is not running. In Terminal: node server.mjs (inside the halo-command folder).'); return false; }
+}
+async function load() {
+  if (window.__HALO_PUBLIC__) document.body.classList.add('public');
+  if (window.__HALO_STATE__) { S = window.__HALO_STATE__; serverOk = false; $('mapNote').textContent = window.__HALO_PUBLIC__ ? 'Live view, watch only. Click anyone to see their file.' : 'Snapshot (read-only). Buttons need: node server.mjs'; render(); return; }
+  try { const r = await fetch('state.json?' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw 0; S = await r.json(); render(); }
+  catch { $('mapNote').textContent = 'No station data yet. Run: node engine/tick.mjs'; }
+}
+
+function render() {
+  const T = S.treasury;
+  $('earned').textContent = money(T.earned); $('goal').textContent = '/ ' + money(T.goal).replace('.00', '') + ' goal';
+  $('goal').title = T.goal_note || '';
+  $('spent').textContent = money(T.spent) + ' / ' + money(T.cap).replace('.00', '');
+  const AB = { tiktok: 'TT', instagram: 'IG', facebook: 'FB', youtube: 'YT' };
+  $('posts').textContent = Object.entries(S.cadence).map(([p, c]) => `${AB[p] || p} ${c.posted_today}/${c.allowed_today}`).join(' · ');
+  $('posts').title = Object.entries(S.cadence).map(([p, c]) => `${p}: ${c.posted_today} of ${c.allowed_today} allowed today (warm-up ramp)`).join('\n');
+  $('tick').textContent = S.tick; const mins = Math.round((Date.now() - new Date(S.generated_at)) / 60000);
+  $('ago').textContent = mins < 1 ? 'just now' : mins + ' min ago';
+  $('stopbar').hidden = !S.stopped; $('stopBtn').textContent = S.stopped ? 'RESUME' : 'STOP ALL'; $('stopBtn').className = 'btn ' + (S.stopped ? 'go' : 'stop');
+  renderRoster(); renderApprovals(); renderBlockers(); renderDebate(); renderResearch(); renderAnalytics(); renderConnectors(); renderBusinesses();
+  if (S.station) $('corpName').textContent = S.station.toUpperCase();
+  $('briefing').innerHTML = S.briefing_text ? `<details><summary>${esc(S.briefings[0]?.kind)} · ${esc(S.briefings[0]?.date)}</summary><div class="card"><pre>${esc(S.briefing_text)}</pre></div></details>` : 'None yet.';
+  $('log').innerHTML = S.log.slice(0, 40).map(l => `<div><span class="mono">${esc(localTime(l.at))}</span> <b>${esc(nameOf(l.who))}</b> ${esc(l.msg)}</div>`).join('') || '<div>Quiet.</div>';
+  if (openId) openDrawer(openId);
+  syncSprites();
+}
+const agent = id => S.agents.find(a => a.id === id);
+const nameOf = id => agent(id)?.name || id;
+const roomName = id => S.rooms.find(r => r.id === id)?.name || id;
+
+function vitBars(st) { return st ? `<div class="vit" title="${VKEYS.map(([k, n]) => `${n} ${st.vitals[k].score}: ${st.vitals[k].why}`).join('\n')}">${VKEYS.map(([k]) => `<i style="height:${Math.max(3, st.vitals[k].score * .22)}px;background:${vColor(st.vitals[k].score)}"></i>`).join('')}</div>` : ''; }
+function renderRoster() {
+  const order = S.rooms.map(r => r.id), rk = { ai: 0, chief: 1, elite: 2, grunt: 3 };
+  const list = S.agents.filter(a => !roomFilter || a.room === roomFilter).sort((a, b) => order.indexOf(a.room) - order.indexOf(b.room) || rk[a.rank] - rk[b.rank]);
+  $('rosterNote').innerHTML = roomFilter ? `${esc(roomName(roomFilter))} only · <a href="#" id="clearFilter">show everyone</a>` : `${S.agents.length} crew`;
+  $('roster').innerHTML = list.map(a => {
+    const st = a.stats, o = st?.outcome, t = a.task;
+    return `<tr class="row" data-id="${esc(a.id)}" tabindex="0"><td><b>${esc(a.name)}</b><span class="rank ${esc(a.rank)}">${esc(a.rank)}</span></td>
+      <td class="small">${esc(roomName(a.room))}${a.location !== a.room ? `<br><span class="muted">now: ${esc(roomName(a.location))}</span>` : ''}</td>
+      <td class="small">${t ? `${esc(t.title)} <span class="st ${esc(t.status)}">${esc(t.status.replace('_', ' '))}</span>` : '<span class="muted">-</span>'}</td>
+      <td class="small">${o ? `<div class="bar"><i style="width:${o.pct}%"></i></div>${esc(o.text)}` : '<span class="muted">supports the room</span>'}</td>
+      <td><span class="lbl ${esc(st?.label)}">${esc(st?.label || '-')}</span> <span class="muted small">${st?.overall ?? ''}</span></td><td>${vitBars(st)}</td></tr>`;
+  }).join('');
+  const cf = $('clearFilter'); if (cf) cf.onclick = e => { e.preventDefault(); roomFilter = null; renderRoster(); };
+  for (const tr of $('roster').querySelectorAll('tr.row')) { tr.onclick = () => openDrawer(tr.dataset.id); tr.onkeydown = e => { if (e.key === 'Enter') openDrawer(tr.dataset.id); }; }
+}
+
+function renderApprovals() {
+  if (window.__HALO_PUBLIC__) { $('apCount').textContent = ''; $('approvals').innerHTML = `<div class="muted">${S.pending_count || 0} decision(s) waiting on Thomas.</div>`; return; }
+  $('apCount').textContent = S.approvals.length ? `${S.approvals.length} waiting` : 'all clear';
+  $('approvals').innerHTML = S.approvals.map(a => `<div class="card"><b>${esc(a.title)}</b><span class="muted small">${esc(nameOf(a.agent))} · ${esc(a.kind)} · ${esc(a.id)}</span><pre>${esc(a.detail || '')}</pre>
+    <div class="row2"><input placeholder="Note (optional)" id="note-${esc(a.id)}" maxlength="300"><button class="btn small go" data-ap="${esc(a.id)}" data-d="approve">Approve</button><button class="btn small stop" data-ap="${esc(a.id)}" data-d="reject">Reject</button></div></div>`).join('')
+    + (S.decided?.length ? `<details><summary>Recent decisions</summary>${S.decided.map(a => `<div class="small muted">${esc(a.status)} · ${esc(a.title)}${a.note ? ' · ' + esc(a.note) : ''}</div>`).join('')}</details>` : '')
+    || '<div class="muted">Nothing needs you.</div>';
+  for (const b of $('approvals').querySelectorAll('button[data-ap]')) b.onclick = () => api('/api/decision', { id: b.dataset.ap, decision: b.dataset.d, note: $('note-' + b.dataset.ap)?.value || '' });
+}
+
+function renderBlockers() {
+  $('blockers').innerHTML = S.blockers.length ? S.blockers.map(b => `<div class="card"><b>${esc(b.connector.replace(/_/g, ' '))}</b><span class="small">Hungry: ${b.starving.map(id => esc(nameOf(id))).join(', ')}</span><div class="small muted" style="margin-top:4px">${esc(b.how || '')}</div><div class="small" style="margin-top:4px">Who connects it: <b style="display:inline">${esc(b.who || 'Thomas')}</b></div></div>`).join('')
+    : '<div class="muted">Everyone has what they need.</div>';
+}
+
+function renderDebate() {
+  const d = S.debate; if (!d) return;
+  $('debateNote').textContent = `${d.week} · ${d.status}`;
+  $('debate').innerHTML = `<div>${d.argument.map(l => `<div class="bubble ${esc(l.s)}"><b>${esc(l.s)}:</b> ${esc(l.t)}</div>`).join('')}</div>
+    <div class="tablewrap"><table><thead><tr><th>#</th><th>Lane</th><th>Question</th><th>Rico says</th><th>Dee says</th><th>Score</th></tr></thead><tbody>
+    ${d.slate.map((t, i) => `<tr><td>${i + 1}</td><td><span class="lane ${esc(t.lane)}">${esc(t.lane)}</span></td><td><b>${esc(t.q)}</b>${t.score.notes?.length ? `<br><span class="muted small">${esc(t.score.notes.join('; '))}</span>` : ''}</td><td class="small">${esc(t.rico)}</td><td class="small">${esc(t.dee)}</td><td><b>${t.score.total}</b></td></tr>`).join('')}
+    </tbody></table></div>
+    ${d.alternates?.length ? `<div class="small muted" style="margin-top:8px">Alternates: ${d.alternates.map(t => `${esc(t.q)} (${t.score.total})`).join(' · ')}</div>` : ''}
+    ${d.dropped?.length ? `<div class="small" style="margin-top:6px;color:var(--amber)">Dropped by the safety gate: ${d.dropped.map(x => esc(x.q) + ' — ' + esc(x.reason)).join('; ')}</div>` : ''}`;
+}
+
+function renderResearch() {
+  const r = S.research || {}; const sig = r.signals || [];
+  $('researchNote').textContent = r.signals_at ? 'winning Shorts read ' + new Date(r.signals_at).toLocaleString() : '';
+  const moments = (r.moments || []).map(m => `<tr><td>${m.score}</td><td><a href="${safeUrl(m.url)}" target="_blank" rel="noopener">${esc(m.title)}</a><br><span class="small muted">${Math.floor(m.start / 60)}:${String(Math.floor(m.start % 60)).padStart(2, '0')} · ${esc(m.hook)}</span></td><td class="small">${esc((m.reasons || []).join(', '))}</td></tr>`).join('');
+  $('research').innerHTML = (moments ? `<b class="small">Clip moments (campaign footage)</b><div class="tablewrap"><table><tbody>${moments}</tbody></table></div>` : '<div class="small muted">No campaign joined yet, so no clip moments. Topic research below feeds the Debate Studio.</div>')
+    + (sig.length ? `<div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Views</th><th>Winning Short</th><th>Topic</th><th>Hook</th></tr></thead><tbody>${sig.slice(0, 15).map(h => `<tr><td class="mono">${fmt(h.views)}</td><td><a href="${safeUrl(h.url)}" target="_blank" rel="noopener">${esc(h.title)}</a></td><td class="small">${esc(h.topic)}</td><td><span class="lane">${esc(h.pattern)}</span></td></tr>`).join('')}</tbody></table></div>` : '')
+    + (r.gaps?.length ? `<div class="small muted" style="margin-top:6px">Nothing winning yet (open lanes): ${r.gaps.map(esc).join(', ')}</div>` : '');
+}
+
+function renderAnalytics() {
+  const p = S.analytics?.posts || [];
+  $('analytics').innerHTML = p.length ? p.map(x => `<div class="card"><b>${esc(x.title || x.url)}</b><span class="small">${x.views == null ? '<span style="color:var(--amber)">could not read</span>' : `<b style="display:inline">${fmt(x.views)}</b> views`} · ${esc(x.platform)} · read ${esc(localTime(x.read_at))}</span></div>`).join('') + '<div class="small muted">TikTok, Instagram and Facebook views need their logins (platform insights).</div>' : 'No reads yet.';
+}
+
+function renderBusinesses() {
+  const V = S.ventures || [];
+  $('bizNote').textContent = V.length ? `${V.length} · edit config/ventures.json` : '';
+  if (!V.length) { $('biz').innerHTML = 'No ventures yet.'; return; }
+  const cls = st => st === 'live' ? 'st-active' : st === 'building' ? 'st-early' : st === 'paused' ? 'st-paused' : 'st-done';
+  $('biz').innerHTML = `<div class="bizgrid">${V.map(v => `<div class="biz"><b>${esc(v.name)}</b>
+    <span class="st ${cls(v.status)}">${esc(v.status)}</span> <span class="small muted">${esc(v.type)}</span>
+    <div class="na">${esc(v.about)}</div>
+    ${v.next_action ? `<div class="na">Next: ${esc(v.next_action)}</div>` : ''}
+    ${v.rooms.length ? `<div class="na">Crew: ${v.rooms.map(r => esc(roomName(r))).join(', ')}</div>` : ''}
+    ${v.links.length ? `<div class="pg">${v.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}</div>` : ''}</div>`).join('')}</div>`;
+}
+
+function renderConnectors() {
+  const word = c => c.status === 'connected' ? ['k-allowed', 'connected'] : c.status === 'waiting' ? ['k-approval', 'on, waiting for Hermes'] : ['k-blocked', 'not connected'];
+  $('connectors').innerHTML = Object.entries(S.connectors).map(([k, c]) => `<div class="acc"><span>${esc(k.replace(/_/g, ' '))}</span><span class="${word(c)[0]}">${word(c)[1]}</span></div>`).join('')
+    + `<div class="small muted" style="margin-top:6px">Brain (Hermes): ${S.brain.enabled ? `on, up to $${esc(S.brain.cap)}/month of your $${esc(S.treasury.cap)}${S.brain.seen_at ? '' : '. Waiting for Hermes to get his instructions.'}` : 'off until you approve its monthly cost'}.</div>`;
+}
+
+function openDrawer(id) {
+  const a = agent(id); if (!a) return; openId = id; const st = a.stats || {};
+  const tasks = (S.tasks || []).filter(t => t.assignee === id || t.lead === id).slice(0, 8);
+  const d = $('drawer'); d.hidden = false;
+  d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:start;gap:10px"><div><h3>${esc(a.name)} <span class="rank ${esc(a.rank)}">${esc(a.rank)}</span></h3><div class="muted small">${esc(a.personality || '')}</div></div><button class="btn small" id="closeD" aria-label="Close">Close</button></div>
+    <div class="kv"><span>Room</span><span>${esc(roomName(a.room))}${a.location !== a.room ? ` (now in ${esc(roomName(a.location))})` : ''}</span><span>Reports to</span><span>${esc(a.reports_to === 'thomas' ? 'Thomas' : nameOf(a.reports_to))}</span>
+    ${a.crew?.length ? `<span>Crew</span><span>${a.crew.map(c => esc(nameOf(c))).join(', ')}</span>` : ''}<span>Partners</span><span>${(a.partners || []).map(p => esc(nameOf(p))).join(', ') || 'works solo'}</span>${a.runtime ? `<span>Runs on</span><span>${esc(a.runtime)}</span>` : ''}</div>
+    <div class="card"><b>Job</b>${esc(a.job)}</div>
+    ${st.outcome ? `<div class="card"><b>Outcome: ${esc(a.outcome.label)}</b><div class="bar" style="margin:6px 0"><i style="width:${st.outcome.pct}%"></i></div>${esc(st.outcome.text)}</div>` : ''}
+    <div class="card"><b>Wellbeing: <span class="${esc(st.label)}">${esc(st.label)} ${st.overall ?? ''}</span></b>
+    ${VKEYS.map(([k, n]) => st.vitals ? `<div class="vrow"><span>${n}</span><div class="bar"><i style="width:${st.vitals[k].score}%;background:${vColor(st.vitals[k].score)}"></i></div><span class="mono small">${st.vitals[k].score}</span><small>${esc(st.vitals[k].why)}</small></div>` : '').join('')}</div>
+    <div class="card"><b>Care plan</b>${(st.care || []).map(c => `<div class="small">• ${esc(c.text)}</div>`).join('')}</div>
+    <div class="card"><b>Access</b>${(a.access || []).map(x => `<div class="acc"><span class="mono">${esc(x.cap)}</span><span class="k-${esc(x.kind)}" title="${esc(x.reason)}">${esc(x.kind === 'approval' ? 'with your OK' : x.kind)}</span></div>`).join('') || '<div class="small muted">No tools. Reads its orders only.</div>'}<div class="small muted" style="margin-top:6px">Never given to anyone: passwords, keys, payout changes, deleting accounts.</div></div>
+    <div class="card"><b>Recent jobs</b>${tasks.map(t => `<div class="small" style="margin:4px 0"><span class="st ${esc(t.status)}">${esc(t.status.replace('_', ' '))}</span> ${esc(t.title)}<br><span class="muted">${esc(t.result || t.error || '')}</span></div>`).join('') || '<div class="small muted">None yet.</div>'}</div>`;
+  $('closeD').onclick = closeDrawer;
+}
+function closeDrawer() { $('drawer').hidden = true; openId = null; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+$('cmdForm').onsubmit = e => { e.preventDefault(); const v = $('cmd').value.trim(); if (v) api('/api/command', { text: v }).then(ok => { if (ok) $('cmd').value = ''; }); };
+$('runBtn').onclick = () => api('/api/tick');
+$('stopBtn').onclick = () => api(S?.stopped ? '/api/resume' : '/api/stop');
+
+// ---------------- station map ----------------
+const cv = $('map'), g = cv.getContext('2d'); const W = 960, H = 560;
+const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr; g.scale(dpr, dpr); g.imageSmoothingEnabled = false;
+const ICON = { command: '🛰', research: '🔭', forge: '✂️', publish: '📡', debate: '🎙', comms: '💬', treasury: '🏦', analytics: '📈', compliance: '🛡', medbay: '⚕️', mess: '🍲', barracks: '🛏' };
+const RW = 214, RH = 158, GX = 22, GY = 24, OX = 18, OY = 20;
+const roomRect = i => ({ x: OX + (i % 4) * (RW + GX), y: OY + Math.floor(i / 4) * (RH + GY), w: RW, h: RH });
+const sprites = {}; let tnow = 0, chiefStop = 0, chiefSince = 0;
+const stars = Array.from({ length: 90 }, (_, i) => ({ x: (i * 137) % W, y: (i * 89) % H, s: (i % 3) * .3 + .4 }));
+const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+
+function slots() {
+  const byLoc = {}; const out = {};
+  for (const a of S.agents) { if (a.id === 'chief') continue; (byLoc[a.location] ||= []).push(a); }
+  S.rooms.forEach((r, i) => {
+    const R = roomRect(i), list = (byLoc[r.id] || []).sort((x, y) => ({ ai: 0, elite: 1, grunt: 2 }[x.rank] - { ai: 0, elite: 1, grunt: 2 }[y.rank]));
+    list.forEach((a, k) => { out[a.id] = { x: R.x + 34 + (k % 5) * 38, y: R.y + 74 + Math.floor(k / 5) * 46 }; });
+  });
+  return out;
+}
+function syncSprites() {
+  if (!S) return; const pos = slots();
+  for (const a of S.agents) {
+    const s = sprites[a.id] ||= { x: W / 2, y: H / 2, tx: W / 2, ty: H / 2, a };
+    s.a = a; if (pos[a.id]) { s.tx = pos[a.id].x; s.ty = pos[a.id].y; }
+  }
+}
+function chiefTarget() {
+  const busyRooms = S.rooms.map((r, i) => ({ r, i })).filter(({ r }) => S.agents.some(a => a.location === r.id && a.task && ['queued', 'working', 'blocked', 'awaiting_approval'].includes(a.task.status)));
+  const list = busyRooms.length ? busyRooms : [{ r: S.rooms[0], i: 0 }];
+  if (tnow - chiefSince > 260) { chiefStop = (chiefStop + 1) % list.length; chiefSince = tnow; }
+  const { r, i } = list[chiefStop % list.length]; const R = roomRect(i);
+  return { x: R.x + R.w - 34, y: R.y + R.h - 30, room: r };
+}
+function chiefLine(room) {
+  const names = S.agents.filter(a => a.location === room.id).map(a => a.name);
+  const l = S.log.find(x => x.who === 'chief' && names.some(n => x.msg.includes(n)));
+  if (l) return l.msg.length > 46 ? l.msg.slice(0, 44) + '…' : l.msg;
+  const a = S.agents.find(x => x.location === room.id && x.task); return a ? `${a.name}, stay on it.` : 'Looking good.';
+}
+function drawRoom(r, i) {
+  const R = roomRect(i);
+  g.fillStyle = r.revenue ? '#120f05' : '#0b1524'; g.fillRect(R.x, R.y, R.w, R.h);
+  g.strokeStyle = r.revenue ? '#8a6d1f' : '#22405f'; g.lineWidth = 2; g.strokeRect(R.x + 1, R.y + 1, R.w - 2, R.h - 2);
+  g.fillStyle = r.revenue ? '#f0c24b' : '#9cc7ea'; g.font = '600 13px ui-sans-serif,system-ui'; g.fillText(`${ICON[r.id] || ''} ${r.name}`, R.x + 10, R.y + 22);
+  g.fillStyle = '#16263d';
+  if (r.id === 'barracks') for (let k = 0; k < 4; k++) g.fillRect(R.x + 16 + k * 48, R.y + R.h - 34, 36, 14);
+  else if (r.id === 'mess') { g.fillRect(R.x + 30, R.y + R.h - 40, 150, 12); }
+  else if (r.id === 'medbay') { g.fillStyle = '#3a1a1f'; g.fillRect(R.x + R.w - 40, R.y + 12, 8, 24); g.fillRect(R.x + R.w - 48, R.y + 20, 24, 8); }
+  else if (r.id === 'treasury') { g.strokeStyle = '#8a6d1f'; g.beginPath(); g.arc(R.x + R.w - 34, R.y + 26, 14, 0, 7); g.stroke(); }
+  else if (r.id !== 'command') for (let k = 0; k < 3; k++) g.fillRect(R.x + 22 + k * 64, R.y + R.h - 26, 44, 10);
+}
+function drawCrew(s) {
+  const a = s.a, st = a.stats || {}; const bob = Math.sin(tnow / 9 + hash(a.id)) * (a.task && a.task.status !== 'blocked' ? 1.5 : .5);
+  const x = Math.round(s.x), y = Math.round(s.y + bob);
+  g.fillStyle = vColor(st.overall ?? 70) + '55'; g.beginPath(); g.ellipse(x, s.y + 12, 11, 4, 0, 0, 7); g.fill();
+  if (a.rank === 'ai') {
+    const p = 4 + Math.sin(tnow / 14) * 2; g.fillStyle = 'rgba(79,214,255,.12)'; g.beginPath(); g.arc(x, y - 4, 20 + p, 0, 7); g.fill();
+    g.fillStyle = 'rgba(79,214,255,.85)'; g.fillRect(x - 3, y - 18, 6, 6); g.fillRect(x - 5, y - 11, 10, 16); g.fillStyle = 'rgba(200,245,255,.6)';
+    for (let k = -16; k < 6; k += 3) g.fillRect(x - 6, y + k, 12, 1);
+  } else if (a.rank === 'chief') {
+    g.fillStyle = '#1d3557'; g.fillRect(x - 6, y - 8, 12, 15); g.fillStyle = '#f0c24b'; g.fillRect(x - 7, y - 8, 3, 3); g.fillRect(x + 4, y - 8, 3, 3);
+    g.fillStyle = '#c8a07a'; g.fillRect(x - 4, y - 16, 8, 8); g.fillStyle = '#e8e8e8'; g.fillRect(x - 5, y - 18, 10, 3); g.fillStyle = '#f0c24b'; g.fillRect(x - 5, y - 16, 10, 1);
+    g.fillStyle = '#0d1b2a'; g.fillRect(x - 5, y + 7, 4, 4); g.fillRect(x + 1, y + 7, 4, 4);
+  } else {
+    const elite = a.rank === 'elite'; const skin = ['#c8a07a', '#8d5b3a', '#e0b994', '#5a3a28'][hash(a.id) % 4];
+    g.fillStyle = elite ? '#6c4fe0' : '#f2c230'; g.fillRect(x - (elite ? 5 : 4), y - (elite ? 6 : 4), elite ? 10 : 8, elite ? 13 : 10);
+    if (!elite) { g.fillStyle = '#ff8a1e'; g.fillRect(x - 4, y, 8, 1); g.fillRect(x - 4, y + 3, 8, 1); }
+    else { g.fillStyle = '#f0c24b'; g.fillRect(x - 5, y - 6, 10, 1); }
+    g.fillStyle = skin; g.fillRect(x - 3, y - (elite ? 13 : 10), 6, 6);
+    if (a.id === 'rico') { g.fillStyle = '#ffb000'; g.fillRect(x - 3, y - 14, 2, 3); g.fillRect(x, y - 15, 2, 4); g.fillRect(x + 2, y - 14, 1, 3); }
+    else if (a.id === 'dee') { g.fillStyle = '#4fd6ff'; g.fillRect(x - 3, y - 9, 6, 1); }
+    else if (!elite) { g.fillStyle = '#ffffff'; g.fillRect(x - 4, y - 12, 8, 2); }
+    g.fillStyle = '#0d1b2a'; g.fillRect(x - 3, y + (elite ? 7 : 6), 2, 3); g.fillRect(x + 1, y + (elite ? 7 : 6), 2, 3);
+  }
+  g.font = '10px ui-sans-serif,system-ui'; g.fillStyle = '#cfe6ff'; g.textAlign = 'center'; g.fillText(a.name.replace('Master ', ''), x, s.y + 24); g.textAlign = 'left';
+  let mark = null, col = '#fff';
+  if (st.resting) { mark = 'z'; col = '#9cc7ea'; } else if (a.task?.status === 'blocked') { mark = '!'; col = '#ffb347'; } else if (a.task?.status === 'failed') { mark = '×'; col = '#ff5f5f'; } else if (a.task?.status === 'awaiting_approval') { mark = '?'; col = '#f0c24b'; }
+  if (mark) { g.fillStyle = '#000a'; g.beginPath(); g.arc(x + 9, y - 16, 7, 0, 7); g.fill(); g.fillStyle = col; g.font = 'bold 11px ui-sans-serif'; g.fillText(mark, x + 6, y - 12); }
+}
+function draw() {
+  tnow++; g.fillStyle = '#02050a'; g.fillRect(0, 0, W, H);
+  for (const st of stars) { g.fillStyle = `rgba(160,200,255,${st.s})`; g.fillRect((st.x + tnow * st.s * .15) % W, st.y, 1, 1); }
+  if (!S) { g.fillStyle = '#7d97b0'; g.font = '14px ui-sans-serif'; g.fillText('Waiting for station data. Run: node engine/tick.mjs', 300, 280); return; }
+  g.strokeStyle = '#0f2236'; g.lineWidth = 10;
+  for (let row = 0; row < 3; row++) { const y = OY + row * (RH + GY) + RH / 2; g.beginPath(); g.moveTo(OX, y); g.lineTo(W - OX, y); g.stroke(); }
+  for (let col = 0; col < 4; col++) { const x = OX + col * (RW + GX) + RW / 2; g.beginPath(); g.moveTo(x, OY); g.lineTo(x, H - OY); g.stroke(); }
+  S.rooms.forEach(drawRoom);
+  const ct = chiefTarget(); const ch = sprites.chief; if (ch) { ch.tx = ct.x; ch.ty = ct.y; }
+  for (const s of Object.values(sprites)) { s.x += (s.tx - s.x) * .04; s.y += (s.ty - s.y) * .04; drawCrew(s); }
+  if (ch && Math.hypot(ch.tx - ch.x, ch.ty - ch.y) < 6) {
+    // Bubble sits in the room's header strip so it never covers the crew.
+    const R = roomRect(S.rooms.indexOf(ct.room)); g.font = '11px ui-sans-serif';
+    let line = chiefLine(ct.room); while (g.measureText(line).width > R.w - 18 && line.length > 8) line = line.slice(0, -2).trimEnd() + '…';
+    const w = g.measureText(line).width + 14, bx = R.x + R.w - w - 6, by = R.y + 30;
+    g.fillStyle = '#0d1828ee'; g.strokeStyle = '#f0c24b'; g.lineWidth = 1; g.fillRect(bx, by, w, 20); g.strokeRect(bx + .5, by + .5, w, 20); g.fillStyle = '#f0c24b'; g.fillText(line, bx + 7, by + 14);
+  }
+}
+function frame() { draw(); requestAnimationFrame(frame); }
+// Manual stepping for hidden tabs / QA, where requestAnimationFrame never fires.
+window.halo = { step(n = 1) { for (let i = 0; i < n; i++) draw(); return tnow; }, state: () => S };
+function hit(ev) {
+  const b = cv.getBoundingClientRect(), x = (ev.clientX - b.left) * W / b.width, y = (ev.clientY - b.top) * H / b.height;
+  const s = Object.values(sprites).find(s => Math.hypot(s.x - x, s.y - y) < 14);
+  const ri = S ? S.rooms.findIndex((r, i) => { const R = roomRect(i); return x >= R.x && x <= R.x + R.w && y >= R.y && y <= R.y + R.h; }) : -1;
+  return { s, room: ri >= 0 ? S.rooms[ri] : null, px: ev.clientX - b.left, py: ev.clientY - b.top };
+}
+cv.addEventListener('click', ev => { if (!S) return; const h = hit(ev); if (h.s) openDrawer(h.s.a.id); else if (h.room) { roomFilter = h.room.id; renderRoster(); } });
+cv.addEventListener('mousemove', ev => { if (!S) return; const h = hit(ev), tip = $('tip');
+  if (h.s) { const st = h.s.a.stats || {}; tip.style.display = 'block'; tip.style.left = (h.px + 12) + 'px'; tip.style.top = (h.py + 8) + 'px'; tip.textContent = `${h.s.a.name} · ${st.label || ''} ${st.overall ?? ''} · ${h.s.a.task ? h.s.a.task.title : 'no job'}`; cv.style.cursor = 'pointer'; }
+  else { tip.style.display = 'none'; cv.style.cursor = h.room ? 'pointer' : 'default'; } });
+cv.addEventListener('mouseleave', () => $('tip').style.display = 'none');
+
+load(); setInterval(load, 5000); frame();
+</script>
+</body>
+</html>
